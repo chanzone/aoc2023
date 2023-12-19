@@ -102,7 +102,7 @@ fn process(input: &str) -> String {
         })
         .collect();
 
-    let sum = rules_input[1].lines().fold(0, |acc, s| {
+    rules_input[1].lines().fold(0, |acc, s| {
         let ratings: HashMap<String, usize> = s[1..s.len() - 1]
             .split(',')
             .map(|c| {
@@ -119,9 +119,7 @@ fn process(input: &str) -> String {
         } else {
             acc
         }
-    });
-
-    sum.to_string()
+    }).to_string()
 }
 
 #[cfg(test)]
