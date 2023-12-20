@@ -1,6 +1,3 @@
-// NOTE: NOT WORKING.
-type Length = Vec<isize>;
-
 #[derive(Debug)]
 enum Direction {
     Up,
@@ -15,7 +12,7 @@ struct DigPlan {
     steps: usize,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 struct Position {
     x: isize,
     y: isize,
@@ -46,70 +43,25 @@ fn extract(input: &str) -> Vec<DigPlan> {
     }).collect()
 }
 
-fn get_width(dig_plans: &Vec<DigPlan>) -> Length {
-    let mut moved: isize = 0;
-    let mut max: isize = 0;
-    let mut min: isize = 0;
-    for dig_plan in dig_plans {
-        match dig_plan.dir {
-            Direction::Right => moved += dig_plan.steps as isize,
-            Direction::Left => moved -= dig_plan.steps as isize,
-            _ => (),
-        }
-
-        if max < moved {
-            max = moved;
-        }
-
-        if min > moved {
-            min = moved;
-        }
-    }
-
-    let mut current: isize = min;
-    let mut width: Vec<isize> = vec![];
-    while current <= max {
-        width.push(current);
-        current += 1;
-    }
-
-    width
+fn shoelace_formula_area(positions: &Vec<Position>) -> i64 {
+    ((1..positions.len() - 1)
+        .map(|i| positions[i].x * (positions[i + 1].y - positions[i - 1].y))
+        .map(|x| x as i64)
+        .sum::<i64>()
+        / 2)
+    .abs()
 }
 
-fn get_height(dig_plans: &Vec<DigPlan>) -> Length {
-    let mut moved: isize = 0;
-    let mut max: isize = 0;
-    let mut min: isize = 0;
-    for dig_plan in dig_plans {
-        match dig_plan.dir {
-            Direction::Down => moved -= dig_plan.steps as isize,
-            Direction::Up => moved += dig_plan.steps as isize,
-            _ => (),
-        }
-
-        if max < moved {
-            max = moved;
-        }
-
-        if min > moved {
-            min = moved;
-        }
-    }
-
-    let mut current: isize = max;
-    let mut height: Vec<isize> = vec![];
-    while current >= min {
-        height.push(current);
-        current -= 1;
-    }
-
-    height
+fn exterior_point_count(positions: &[Position]) -> i64 {
+    positions
+        .windows(2)
+        .map(|window| (window[0].x - window[1].x).abs() + (window[0].y - window[1].y).abs())
+        .map(|x| x as i64)
+        .sum()
 }
 
 fn process(input: &str) -> String {
     let dig_plans: Vec<DigPlan> = extract(input);
-    let width = get_width(&dig_plans);
-    let height = get_height(&dig_plans);
     let mut floor: Vec<Position> = vec![];
 
     let mut x: isize = 0;
@@ -122,30 +74,11 @@ fn process(input: &str) -> String {
                 Direction::Left => x -= 1,
                 Direction::Right => x += 1,
             }
-            // dbg!(x, y);
             floor.push(Position { x, y , dig: true});
         }
     }
 
-    let mut count: usize = 0;
-    for y in height.clone() {
-        let mut is_within_boundary: bool = false;
-        for x in width.clone() {
-            if floor.contains(&Position { x, y, dig: true}) && !is_within_boundary {
-                is_within_boundary = true;
-                count += 1;
-            } else if !floor.contains(&Position { x, y, dig: true}) && is_within_boundary {
-                count += 1;
-            } else if floor.contains(&Position { x, y, dig: true}) && is_within_boundary && !floor.contains(&Position { x: x - 1, y, dig: true}) {
-                is_within_boundary = false;
-                count += 1;
-            } else if floor.contains(&Position { x, y, dig: true}) {
-                count += 1;
-            }
-        }
-    }
-
-    count.to_string()   // Replace with the actual code here
+    ((shoelace_formula_area(&floor) - exterior_point_count(&floor) / 2 + 1) + exterior_point_count(&floor)).to_string()
 }
 
 #[cfg(test)]
