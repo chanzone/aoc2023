@@ -4,7 +4,6 @@ use std::fmt::Debug;
 struct Point {
     x: usize,
     y: usize,
-    is_start: bool,
     is_rock: bool,
     is_reached: bool,
 }
@@ -24,9 +23,9 @@ fn extract(input: &str) -> Vec<Point> {
     for y in 0..garden.len() {
         for x in 0..garden[0].len() {
             let point: Point = match garden[y][x] {
-                'S' => Point { x, y, is_start: true, is_rock: false, is_reached: false },
-                '#' => Point { x, y, is_start: false, is_rock: true, is_reached: false },
-                _ => Point { x, y, is_start: false, is_rock: false, is_reached: false },
+                'S' => Point { x, y, is_rock: false, is_reached: true },
+                '#' => Point { x, y, is_rock: true, is_reached: false },
+                _ => Point { x, y, is_rock: false, is_reached: false },
             };
 
             points.push(point);
@@ -40,9 +39,6 @@ fn process(input: &str) -> String {
     // let total_steps: usize = 6;  // For test dataset
     let total_steps: usize = 64;    // For actual dataset
     let mut points = extract(input);
-
-    let start = points.iter_mut().find(|p: &&mut Point| p.is_start).unwrap();
-    start.is_reached = true;
 
     for _ in 0..total_steps {
         let reached_points: Vec<usize> = points
